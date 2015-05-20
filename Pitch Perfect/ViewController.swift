@@ -17,6 +17,26 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
+    
+    override func viewWillAppear(animated: Bool) {
+        // called after viewDidLoad, before viewDidAppear
+        // ensure initial state
+        stopButton.hidden = true
+        recordButton.enabled = true
+        recordingInProgress.hidden = true
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        // called after view appears
+    }
+    
+    override func viewWillDisappear(animated: Bool) {
+        //
+    }
+    
+    override func viewDidDisappear(animated: Bool) {
+        //
+    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -28,7 +48,7 @@ class ViewController: UIViewController {
         println("recordAudio")
         recordingInProgress.hidden = false
         stopButton.hidden = false
-        recordButton.hidden = true
+        recordButton.enabled = false
     }
     
     @IBAction func stopRecording(sender: UIButton) {
@@ -36,7 +56,7 @@ class ViewController: UIViewController {
         println("stopRecording")
         stopButton.hidden = true
         recordingInProgress.hidden = true
-        recordButton.hidden = false
+        recordButton.enabled = true
     }
 }
 
