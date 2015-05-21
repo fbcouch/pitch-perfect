@@ -11,17 +11,21 @@ import AVFoundation
 
 class PlaySoundsViewController: UIViewController {
     
-    var audioPlayer: AVAudioPlayer!;
+    var audioPlayer: AVAudioPlayer!
+    var audioEngine: AVAudioEngine!
+    var receivedAudio: RecordedAudio!
+    var audioFile: AVAudioFile!
 
     @IBOutlet weak var stopButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if var soundPath = NSBundle.mainBundle().pathForResource("movie_quote", ofType: "mp3") {
-            audioPlayer = AVAudioPlayer(contentsOfURL: NSURL.fileURLWithPath(soundPath), error: nil)
-            audioPlayer.enableRate = true
-            audioPlayer.delegate = self
-        }
+        audioPlayer = AVAudioPlayer(contentsOfURL: receivedAudio.filePathUrl, error: nil)
+        audioPlayer.enableRate = true
+        audioPlayer.delegate = self
+        
+        audioEngine = AVAudioEngine()
+        audioFile = AVAudioFile(forReading: receivedAudio.filePathUrl, error: nil)
         
         // Do any additional setup after loading the view.
     }
@@ -45,16 +49,54 @@ class PlaySoundsViewController: UIViewController {
         stopButton.hidden = false
     }
     
+    @IBAction func playChipmunk(sender: UIButton) {
+        println("playChipmunk")
+        playWithPitch(1000)
+    }
+    
+    @IBAction func playVader(sender: UIButton) {
+        println("playVader")
+        playWithPitch(-1000)
+    }
+    
     @IBAction func stopPlayback(sender: UIButton) {
         stopButton.hidden = true
         audioPlayer.stop()
+        audioEngine.stop()
     }
     
     func playAtRate(rate: Float) {
+        audioEngine.stop()
         audioPlayer.stop()
         audioPlayer.rate = rate
         audioPlayer.currentTime = 0.0
         audioPlayer.play()
+    }
+    
+    func playWithPitch(pitch: Float) {
+        audioPlayer.stop()
+        audioEngine.stop()
+        audioEngine.reset()
+        stopButton.hidden = false
+        let pitchPlayer = AVAudioPlayerNode()
+        let pitchShift = AVAudioUnitTimePitch()
+        
+        pitchShift.pitch = pitch
+        
+        audioEngine.attachNode(pitchPlayer)
+        audioEngine.attachNode(pitchShift)
+        
+        audioEngine.connect(pitchPlayer, to: pitchShift, format: nil)
+        audioEngine.connect(pitchShift, to: audioEngine.outputNode, format: nil)
+        
+        pitchPlayer.scheduleFile(audioFile, atTime: nil) {
+            () in
+            self.stopButton.hidden = true
+        }
+        
+        audioEngine.startAndReturnError(nil)
+        
+        pitchPlayer.play()
     }
     
     /*
